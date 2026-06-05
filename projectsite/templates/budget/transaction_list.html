@@ -10,28 +10,34 @@
     <div class="card-body py-3">
 
         <form method="get" action="{% url 'transaction-list' %}">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
 
-                <select name="type" class="form-select form-select-sm" style="width:auto;">
-                    <option value="">All Types</option>
-                    <option value="income"  {% if request.GET.type == 'income' %}selected{% endif %}>Income</option>
-                    <option value="expense" {% if request.GET.type == 'expense' %}selected{% endif %}>Expense</option>
-                </select>
+            <div class="row g-2 mb-2">
+                <div class="col-4">
+                    <select name="type" class="form-select form-select-sm w-100">
+                        <option value="">All Types</option>
+                        <option value="income"  {% if request.GET.type == 'income' %}selected{% endif %}>Income</option>
+                        <option value="expense" {% if request.GET.type == 'expense' %}selected{% endif %}>Expense</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <select name="tag" class="form-select form-select-sm w-100">
+                        <option value="">All Tags</option>
+                        <option value="need" {% if request.GET.tag == 'need' %}selected{% endif %}>Need</option>
+                        <option value="want" {% if request.GET.tag == 'want' %}selected{% endif %}>Want</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <select name="sort_by" class="form-select form-select-sm w-100">
+                        <option value="-date"   {% if request.GET.sort_by == '-date'   or not request.GET.sort_by %}selected{% endif %}>Newest First</option>
+                        <option value="date"    {% if request.GET.sort_by == 'date'    %}selected{% endif %}>Oldest First</option>
+                        <option value="-amount" {% if request.GET.sort_by == '-amount' %}selected{% endif %}>Highest Amount</option>
+                        <option value="amount"  {% if request.GET.sort_by == 'amount'  %}selected{% endif %}>Lowest Amount</option>
+                    </select>
+                </div>
+            </div>
 
-                <select name="tag" class="form-select form-select-sm" style="width:auto;">
-                    <option value="">All Tags</option>
-                    <option value="need" {% if request.GET.tag == 'need' %}selected{% endif %}>Need</option>
-                    <option value="want" {% if request.GET.tag == 'want' %}selected{% endif %}>Want</option>
-                </select>
-
-                <select name="sort_by" class="form-select form-select-sm" style="width:auto;">
-                    <option value="-date"   {% if request.GET.sort_by == '-date'   or not request.GET.sort_by %}selected{% endif %}>Newest First</option>
-                    <option value="date"    {% if request.GET.sort_by == 'date'    %}selected{% endif %}>Oldest First</option>
-                    <option value="-amount" {% if request.GET.sort_by == '-amount' %}selected{% endif %}>Highest Amount</option>
-                    <option value="amount"  {% if request.GET.sort_by == 'amount'  %}selected{% endif %}>Lowest Amount</option>
-                </select>
-
-                <div class="input-group input-group-sm" style="width:200px;">
+            <div class="d-flex gap-2 align-items-center">
+                <div class="input-group input-group-sm flex-grow-1">
                     <input type="text"
                            name="q"
                            class="form-control"
@@ -41,14 +47,11 @@
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
-
-                <div class="ms-auto">
-                    <a href="{% url 'transaction-add' %}" class="btn btn-success btn-sm">
-                        <i class="fas fa-plus me-1"></i> Add Transaction
-                    </a>
-                </div>
-
+                <a href="{% url 'transaction-add' %}" class="btn btn-success btn-sm text-nowrap">
+                    <i class="fas fa-plus me-1"></i> Add Transaction
+                </a>
             </div>
+
         </form>
 
     </div>
