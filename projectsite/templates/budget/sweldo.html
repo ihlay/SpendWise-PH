@@ -1,0 +1,91 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<h4 class="mb-4">Sweldo Tracker</h4>
+ 
+<!-- Next Payday Card -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                {% if is_payday %}
+                    <h2 class="text-success"><i class="fas fa-gift"></i> It's Payday!</h2>
+                    <p class="lead">Sweldo day ngayon! Enjoy responsibly.</p>
+                {% else %}
+                    <h5>Next Payday</h5>
+                    <h2 class="text-primary">{{ next_payday|date:"F d, Y" }}</h2>
+                    <p class="lead">
+                        <strong>{{ days_until_payday }}</strong> day{{ days_until_payday|pluralize }} to go
+                    </p>
+                {% endif %}
+ 
+                {% if holiday_info.is_holiday %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Holiday Alert!</strong> {{ next_payday|date:"F d" }} is
+                        <strong>{{ holiday_info.name }}</strong> ({{ holiday_info.name_en }}).
+                        Your sweldo might come earlier!
+                    </div>
+                {% endif %}
+ 
+                {% if holiday_info.error %}
+                    <div class="alert alert-info mt-3">
+                        <small>Could not check holidays: {{ holiday_info.error }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5>My Salary</h5>
+                {% if salary %}
+                    <h2 class="text-success">PHP {{ salary|floatformat:2 }}</h2>
+                    <p class="text-muted">per payday (semi-monthly)</p>
+                {% else %}
+                    <p class="text-muted">No salary configured yet.</p>
+                    <p>Go to <strong>Admin Panel</strong> and add your PaydayConfig to set your salary.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- Philippine Holidays This Year -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-calendar-alt"></i> Philippine Holidays {{ next_payday|date:"Y" }}
+    </div>
+    <div class="card-body">
+        {% if ph_holidays %}
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Holiday (Local)</th>
+                    <th>Holiday (English)</th>
+                    <th>Payday?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in ph_holidays %}
+                <tr>
+                    <td>{{ h.date }}</td>
+                    <td>{{ h.localName }}</td>
+                    <td>{{ h.name }}</td>
+                    <td>
+                        {% if h.date|slice:"-2:" == "01" or h.date|slice:"-2:" == "15" %}
+                            <span class="badge bg-danger">Payday Conflict!</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">Could not load holidays. Check your internet connection.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -10,6 +10,9 @@ from django.utils import timezone
 from .models import Transaction, Debt, SavingsGoal
 from .forms import TransactionForm, DebtForm, SavingsGoalForm
 
+import requests as http_requests 
+from datetime import date, timedelta
+from django.views.generic import TemplateView
 
 # ── DASHBOARD VIEW ──
 
@@ -258,3 +261,78 @@ class SavingsGoalDeleteView(LoginRequiredMixin, DeleteView):
         context['model_name'] = 'Savings Goal'
         context['cancel_url'] = reverse_lazy('savings-list')
         return context
+
+# Sweldo Tracker Gawa ni Miko 
+class SweldoTrackerView(LoginRequiredMixin, TemplateView):
+    template_name = 'budget/sweldo.html'
+ 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = date.today()
+ 
+        # Determine next payday (1st or 15th)
+        if today.day < 15:
+            next_payday = today.replace(day=15)
+        elif today.day == 15:
+            next_payday = today  # today is payday!
+        else:
+            if today.month == 12:
+                next_payday = today.replace(year=today.year + 1, month=1, day=1)
+            else:
+                next_payday = today.replace(month=today.month + 1, day=1)
+ 
+        days_until = (next_payday - today).days
+        context['next_payday'] = next_payday
+        context['days_until_payday'] = days_until
+        context['is_payday'] = (days_until == 0)
+ 
+        # Check if next payday falls on a holiday using Nager.Date API
+        context['holiday_info'] = self._check_holiday(next_payday)
+ 
+        # Get user salary from PaydayConfig
+        try:
+            config = PaydayConfig.objects.get(user=self.request.user)
+            context['salary'] = config.salary_amount
+        except PaydayConfig.DoesNotExist:
+            context['salary'] = None
+ 
+        # Get list of PH holidays for the current year
+        context['ph_holidays'] = self._get_ph_holidays(today.year)
+ 
+        return context
+ 
+    def _check_holiday(self, check_date):
+        """Check if a specific date is a Philippine holiday."""
+        try:
+            url = f"https://date.nager.at/api/v3/PublicHolidays/{check_date.year}/PH"
+            response = http_requests.get(url, timeout=10)
+            response.raise_for_status()
+            holidays = response.json()
+ 
+            date_str = check_date.strftime('%Y-%m-%d')
+            for holiday in holidays:
+                if holiday['date'] == date_str:
+                    return {
+                        'is_holiday': True,
+                        'name': holiday['localName'],
+                        'name_en': holiday['name'],
+                    }
+            return {'is_holiday': False}
+ 
+        except http_requests.exceptions.RequestException as e:
+            return {'is_holiday': False, 'error': str(e)}
+        except (KeyError, ValueError):
+            return {'is_holiday': False, 'error': 'Could not parse API response'}
+ 
+    def _get_ph_holidays(self, year):
+        """Fetch all Philippine holidays for a given year."""
+        try:
+            url = f"https://date.nager.at/api/v3/PublicHolidays/{year}/PH"
+            response = http_requests.get(url, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except http_requests.exceptions.RequestException:
+            return []
+        except (KeyError, ValueError):
+            return []
+
