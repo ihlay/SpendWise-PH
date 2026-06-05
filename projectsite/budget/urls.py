@@ -22,4 +22,9 @@ urlpatterns = [
     path('savings/add/', views.SavingsGoalCreateView.as_view(), name='savings-add'),
     path('savings/<int:pk>/', views.SavingsGoalUpdateView.as_view(), name='savings-update'),
     path('savings/<int:pk>/delete/', views.SavingsGoalDeleteView.as_view(), name='savings-delete'),
+
+    # sweldo tracker and analytics — miko
+    path('sweldo/', views.SweldoTrackerView.as_view(), name='sweldo'),
+    path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
+
 ]

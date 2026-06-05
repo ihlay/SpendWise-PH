@@ -14,6 +14,10 @@ import requests as http_requests
 from datetime import date, timedelta
 from django.views.generic import TemplateView
 
+from django.db.models import Sum
+from django.db.models.functions import ExtractWeekDay
+
+
 # ── DASHBOARD VIEW ──
 
 class DashboardView(LoginRequiredMixin, ListView):
@@ -262,7 +266,7 @@ class SavingsGoalDeleteView(LoginRequiredMixin, DeleteView):
         context['cancel_url'] = reverse_lazy('savings-list')
         return context
 
-# Sweldo Tracker Gawa ni Miko 
+# Sweldo Tracker view Gawa ni Miko 
 class SweldoTrackerView(LoginRequiredMixin, TemplateView):
     template_name = 'budget/sweldo.html'
  
@@ -335,4 +339,65 @@ class SweldoTrackerView(LoginRequiredMixin, TemplateView):
             return []
         except (KeyError, ValueError):
             return []
+
+# Analytics view Gawa ni Miko
+class AnalyticsView(LoginRequiredMixin, TemplateView):
+    template_name = 'budget/analytics.html'
+ 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        today = date.today()
+ 
+        # Get expenses this month
+        expenses = Transaction.objects.filter(
+            user=user,
+            transaction_type='expense',
+            date__year=today.year,
+            date__month=today.month,
+        )
+ 
+        # Most expensive day of the week
+        day_spending = (
+            expenses
+            .annotate(weekday=ExtractWeekDay('date'))
+            .values('weekday')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+        )
+ 
+        day_names = {1: 'Sunday', 2: 'Monday', 3: 'Tuesday', 4: 'Wednesday',
+                     5: 'Thursday', 6: 'Friday', 7: 'Saturday'}
+ 
+        if day_spending:
+            top_day = day_spending[0]
+            context['top_day_name'] = day_names.get(top_day['weekday'], 'Unknown')
+            context['top_day_amount'] = top_day['total']
+        else:
+            context['top_day_name'] = None
+            context['top_day_amount'] = 0
+ 
+        # Most expensive category
+        cat_spending = (
+            expenses
+            .values('category')
+            .annotate(total=Sum('amount'))
+            .order_by('-total')
+        )
+ 
+        if cat_spending:
+            context['top_category'] = cat_spending[0]['category'] or 'Uncategorized'
+            context['top_category_amount'] = cat_spending[0]['total']
+        else:
+            context['top_category'] = None
+            context['top_category_amount'] = 0
+ 
+        # Needs vs Wants breakdown
+        needs = expenses.filter(tag='need').aggregate(total=Sum('amount'))['total'] or 0
+        wants = expenses.filter(tag='want').aggregate(total=Sum('amount'))['total'] or 0
+        context['needs_total'] = needs
+        context['wants_total'] = wants
+        context['expense_total'] = needs + wants
+ 
+        return context
 

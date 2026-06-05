@@ -1,0 +1,70 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<h4 class="mb-4">Monthly Analytics</h4>
+ 
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-calendar-day"></i> Most Expensive Day</h5>
+                {% if top_day_name %}
+                    <h2 class="text-danger">{{ top_day_name }}</h2>
+                    <p>You spent <strong>PHP {{ top_day_amount|floatformat:2 }}</strong> on {{ top_day_name }}s this month.</p>
+                {% else %}
+                    <p class="text-muted">No expense data this month yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-tags"></i> Top Category</h5>
+                {% if top_category %}
+                    <h2 class="text-warning">{{ top_category }}</h2>
+                    <p>You spent <strong>PHP {{ top_category_amount|floatformat:2 }}</strong> on {{ top_category }} this month.</p>
+                {% else %}
+                    <p class="text-muted">No ex pense data this month yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<div class="card">
+    <div class="card-header">Needs vs Wants This Month</div>
+    <div class="card-body">
+        {% if expense_total > 0 %}
+        <div class="row text-center">
+            <div class="col-md-6">
+                <h5>Needs</h5>
+                <h3 class="text-primary">PHP {{ needs_total|floatformat:2 }}</h3>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-primary" style="width: {% widthratio needs_total expense_total 100 %}%;">
+                        {% widthratio needs_total expense_total 100 %}%
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Wants</h5>
+                <h3 class="text-warning">PHP {{ wants_total|floatformat:2 }}</h3>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-warning" style="width: {% widthratio wants_total expense_total 100 %}%;">
+                        {% widthratio wants_total expense_total 100 %}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-center text-muted">No expenses this month. Start tracking to see your breakdown!</p>
+        {% endif %}
+    </div>
+</div>
+ 
+{% if top_day_name and top_category %}
+<div class="alert alert-info mt-4">
+    <i class="fas fa-lightbulb"></i>
+    <strong>Insight:</strong> Your biggest spending day this month was <strong>{{ top_day_name }}</strong>
+    - mostly on <strong>{{ top_category }}</strong>.
+</div>
+{% endif %}
+{% endblock %}

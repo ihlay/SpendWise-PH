@@ -66,6 +66,13 @@
                 <a href="{% url 'savings-list' %}" class="{% if 'savings' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-piggy-bank"></i> Savings Goals
                 </a>
+                <a href="{% url 'sweldo' %}" class="{if 'sweldo' in request.resolverv_match.url_name %}active{% endif %}">
+                        <i class="fas fa-cash"></i>Sweldo Tracker
+                </a>
+                <a href="{% url 'analytics' %}" class="{% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+
             </div>
             <!-- Main Content -->
             <div class="col-md-10 p-0">
