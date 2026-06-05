@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.db.models import Q, Sum
 from django.utils import timezone
 
-from .models import Transaction, Debt, SavingsGoal
+from .models import Transaction, Debt, SavingsGoal, PaydayConfig
 from .forms import TransactionForm, DebtForm, SavingsGoalForm
 
 import requests as http_requests 
