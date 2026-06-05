@@ -13,7 +13,7 @@ A Filipino personal budgeting web app built with Django and SQLite.
 - **PWA Support** - Installable as a mobile/desktop app
  
 ## Tech Stack
-- Python 3.10+ / Django 4.2+
+- Python 3.12—3.13 / Django 6.0.6
 - SQLite
 - Bootstrap 5
 - Nager.Date Holiday API
