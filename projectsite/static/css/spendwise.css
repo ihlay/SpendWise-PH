@@ -30,6 +30,7 @@ body {
   background-color: var(--sw-cream);
   color: var(--sw-text);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
 }
 
 
@@ -69,6 +70,9 @@ body {
   .sw-content {
     padding: 1rem;
     padding-bottom: 5rem;
+  }
+  .sw-topbar {
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -171,6 +175,10 @@ body {
   opacity: 0.88;
 }
 
+.sw-avatar.dropdown-toggle::after {
+  display: none;
+}
+
 .sw-bell {
   position: relative;
   color: var(--sw-muted);
@@ -232,6 +240,19 @@ body {
 .sw-kpi-expense  { background: #B71C1C; }
 .sw-kpi-debt     { background: #4E342E; }
 
+@media (max-width: 767.98px) {
+  .sw-kpi-card {
+    padding: 0.9rem 1rem;
+    flex-direction: column;
+  }
+  .sw-kpi-card .sw-kpi-value {
+    font-size: 1.15rem;
+  }
+  .sw-kpi-card .sw-kpi-icon {
+    display: none;
+  }
+}
+
 
 /* Amount colours */
 .sw-income { color: var(--sw-income) !important; }
@@ -286,7 +307,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   color: var(--sw-muted);
   text-decoration: none;
   padding: 0.25rem 0;
@@ -302,12 +323,6 @@ body {
   color: var(--sw-green-900);
 }
 
-
-/* Offcanvas sidebar (mobile) */
-.offcanvas.sw-offcanvas {
-  background: var(--sw-green-900);
-  max-width: 260px;
-}
 
 
 /* Forms */

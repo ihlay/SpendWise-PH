@@ -34,22 +34,6 @@
 </head>
 <body>
 
-    <div class="offcanvas offcanvas-start sw-offcanvas"
-         tabindex="-1"
-         id="mobileSidebar"
-         aria-labelledby="mobileSidebarLabel">
-        <div class="offcanvas-header pb-0">
-            <span id="mobileSidebarLabel" class="visually-hidden">Navigation</span>
-            <button type="button"
-                    class="btn-close btn-close-white ms-auto"
-                    data-bs-dismiss="offcanvas"
-                    aria-label="Close navigation"></button>
-        </div>
-        <div class="offcanvas-body p-0 d-flex flex-column">
-            {% include 'includes/sidebar.html' %}
-        </div>
-    </div>
-
     <div class="sw-layout">
 
         <aside class="sw-sidebar d-none d-md-flex flex-column">
@@ -60,14 +44,6 @@
 
             <header class="sw-topbar">
                 <div class="d-flex align-items-center gap-3">
-                    <button class="btn d-md-none p-0 border-0"
-                            type="button"
-                            data-bs-toggle="offcanvas"
-                            data-bs-target="#mobileSidebar"
-                            aria-controls="mobileSidebar"
-                            aria-label="Open navigation menu">
-                        <i class="fas fa-bars fs-5" style="color: var(--sw-text);"></i>
-                    </button>
                     <h1 class="sw-page-title">{% block page_title %}SpendWise PH{% endblock %}</h1>
                 </div>
                 <div class="sw-topbar-right">
@@ -75,9 +51,30 @@
                         <a href="#" class="sw-bell" aria-label="Notifications">
                             <i class="fas fa-bell"></i>
                         </a>
-                        <a href="#" class="sw-avatar" title="{{ request.user.username }}">
-                            {{ request.user.username|first|upper }}
-                        </a>
+                        <div class="dropdown">
+                            <a href="#" class="sw-avatar dropdown-toggle"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false"
+                               title="{{ request.user.username }}">
+                                {{ request.user.username|first|upper }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <span class="dropdown-item-text text-muted small">
+                                        {{ request.user.username }}
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'account_logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     {% else %}
                         <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Login</a>
                     {% endif %}
