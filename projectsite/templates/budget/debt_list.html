@@ -1,59 +1,188 @@
-{% extends 'base.html' %} {% load static %} {% block content %}
-<h4 class="mb-3">Utang Tracker</h4>
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>All Debts</span>
-        <a href="{% url 'debt-add' %}" class="btn btn-success btn-sm">
-            <i class="fas fa-plus"></i> Add Debt
-        </a>
-    </div>
-    <div class="card-body">
-        <form method="get" class="mb-3" action="{% url 'debt-list' %}">
-            <div class="input-group" style="max-width: 400px;">
-                <input type="text" name="q" class="form-control form-control-sm" placeholder="Search by name..." value="{{ request.GET.q }}">
-                <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="fas fa-search"></i></button>
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Utang Tracker{% endblock %}
+
+{% block content %}
+
+<div class="card mb-4" style="background: var(--sw-green-900); border-radius: var(--sw-radius-md);">
+    <div class="card-body py-3">
+        <div class="row g-3 text-white text-center">
+            <div class="col-4">
+                <div style="font-size:0.75rem; opacity:0.75;">Total I Owe</div>
+                <div class="fw-bold fs-5">₱{{ total_i_owe|floatformat:2|intcomma }}</div>
             </div>
-        </form>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Person</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Due Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for debt in object_list %}
-                <tr>
-                    <td>{{ debt.person_name }}</td>
-                    <td>PHP {{ debt.amount|floatformat:2 }}</td>
-                    <td>{{ debt.get_debt_type_display }}</td>
-                    <td>
-                        {% if debt.status == "paid" %}
+            <div class="col-4" style="border-left:1px solid rgba(255,255,255,0.2); border-right:1px solid rgba(255,255,255,0.2);">
+                <div style="font-size:0.75rem; opacity:0.75;">Owed to Me</div>
+                <div class="fw-bold fs-5">₱{{ total_owed_to_me|floatformat:2|intcomma }}</div>
+            </div>
+            <div class="col-4">
+                <div style="font-size:0.75rem; opacity:0.75;">Net</div>
+                <div class="fw-bold fs-5">
+                    {% if total_owed_to_me >= total_i_owe %}
+                        +₱{{ total_owed_to_me|floatformat:2|intcomma }}
+                    {% else %}
+                        -₱{{ total_i_owe|floatformat:2|intcomma }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'debt-add' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i> Add Debt
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color:var(--sw-expense);">
+            <i class="fas fa-arrow-up-right-from-square"></i> I Owe
+            <span class="badge ms-1" style="background:var(--sw-expense); font-size:0.75rem;">
+                {{ debts_i_owe|length }}
+            </span>
+        </h6>
+
+        {% for debt in debts_i_owe %}
+        <div class="card mb-3 {% if debt.status == 'paid' %}opacity-50{% endif %}">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-bold" style="font-size:1rem; color:var(--sw-text);">
+                            {{ debt.person_name }}
+                        </div>
+                        {% if debt.notes %}
+                            <div class="text-muted small mt-1">{{ debt.notes }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold" style="font-size:1.25rem; color:var(--sw-expense);">
+                            ₱{{ debt.amount|floatformat:2|intcomma }}
+                        </div>
+                        {% if debt.status == 'paid' %}
                             <span class="badge bg-success">Paid</span>
-                        {% elif debt.status == "partial" %}
-                            <span class="badge bg-warning text-dark">Partial</span>
+                        {% elif debt.status == 'partial' %}
+                            <span class="badge" style="background:#E65100;">Partial</span>
                         {% else %}
                             <span class="badge bg-danger">Unpaid</span>
                         {% endif %}
-                    </td>
-                    <td>{{ debt.date|date:"M d, Y" }}</td>
-                    <td>{{ debt.due_date|date:"M d, Y"|default:"-" }}</td>
-                    <td>
-                        <a href="{% url 'debt-update' debt.pk %}" class="text-primary"><i class="fas fa-edit"></i></a>
-                        <a href="{% url 'debt-delete' debt.pk %}" class="text-danger ms-2"><i class="fas fa-trash"></i></a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" class="text-center text-muted">No debts found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% include 'includes/pagination.html' %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-3" style="font-size:0.78rem; color:var(--sw-muted);">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ debt.date|date:"M d, Y" }}</span>
+                    {% if debt.due_date %}
+                        <span class="mx-1">·</span>
+                        <i class="fas fa-clock"></i>
+                        <span>Due {{ debt.due_date|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    {% if debt.status != 'paid' %}
+                    <form method="post" action="{% url 'debt-mark-paid' debt.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-check me-1"></i> Mark Paid
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'debt-update' debt.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'debt-delete' debt.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4" style="border:2px dashed var(--sw-tan); border-radius:var(--sw-radius-md);">
+            <i class="fas fa-check-circle fa-2x mb-2 d-block opacity-25"></i>
+            <p class="mb-0 small">No debts here. You're clear!</p>
+        </div>
+        {% endfor %}
     </div>
+
+    <div class="col-md-6">
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color:var(--sw-income);">
+            <i class="fas fa-arrow-down-left"></i> Owed to Me
+            <span class="badge ms-1" style="background:var(--sw-income); font-size:0.75rem;">
+                {{ debts_owed_to_me|length }}
+            </span>
+        </h6>
+
+        {% for debt in debts_owed_to_me %}
+        <div class="card mb-3 {% if debt.status == 'paid' %}opacity-50{% endif %}">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-bold" style="font-size:1rem; color:var(--sw-text);">
+                            {{ debt.person_name }}
+                        </div>
+                        {% if debt.notes %}
+                            <div class="text-muted small mt-1">{{ debt.notes }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold" style="font-size:1.25rem; color:var(--sw-income);">
+                            ₱{{ debt.amount|floatformat:2|intcomma }}
+                        </div>
+                        {% if debt.status == 'paid' %}
+                            <span class="badge bg-success">Paid</span>
+                        {% elif debt.status == 'partial' %}
+                            <span class="badge" style="background:#E65100;">Partial</span>
+                        {% else %}
+                            <span class="badge bg-danger">Unpaid</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-3" style="font-size:0.78rem; color:var(--sw-muted);">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ debt.date|date:"M d, Y" }}</span>
+                    {% if debt.due_date %}
+                        <span class="mx-1">·</span>
+                        <i class="fas fa-clock"></i>
+                        <span>Due {{ debt.due_date|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-2">
+                    {% if debt.status != 'paid' %}
+                    <form method="post" action="{% url 'debt-mark-paid' debt.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-check me-1"></i> Mark Paid
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'debt-update' debt.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'debt-delete' debt.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center text-muted py-4" style="border:2px dashed var(--sw-tan); border-radius:var(--sw-radius-md);">
+            <i class="fas fa-hand-holding-usd fa-2x mb-2 d-block opacity-25"></i>
+            <p class="mb-0 small">Nobody owes you anything yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
+
 {% endblock %}

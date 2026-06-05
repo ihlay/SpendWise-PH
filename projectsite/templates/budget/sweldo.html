@@ -1,91 +1,171 @@
-{% extends 'base.html' %} {% load static %} {% block content %}
-<h4 class="mb-4">Sweldo Tracker</h4>
- 
-<!-- Next Payday Card -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-success">
-            <div class="card-body text-center">
-                {% if is_payday %}
-                    <h2 class="text-success"><i class="fas fa-gift"></i> It's Payday!</h2>
-                    <p class="lead">Sweldo day ngayon! Enjoy responsibly.</p>
-                {% else %}
-                    <h5>Next Payday</h5>
-                    <h2 class="text-primary">{{ next_payday|date:"F d, Y" }}</h2>
-                    <p class="lead">
-                        <strong>{{ days_until_payday }}</strong> day{{ days_until_payday|pluralize }} to go
-                    </p>
-                {% endif %}
- 
-                {% if holiday_info.is_holiday %}
-                    <div class="alert alert-warning mt-3">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Holiday Alert!</strong> {{ next_payday|date:"F d" }} is
-                        <strong>{{ holiday_info.name }}</strong> ({{ holiday_info.name_en }}).
-                        Your sweldo might come earlier!
-                    </div>
-                {% endif %}
- 
-                {% if holiday_info.error %}
-                    <div class="alert alert-info mt-3">
-                        <small>Could not check holidays: {{ holiday_info.error }}</small>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5>My Salary</h5>
-                {% if salary %}
-                    <h2 class="text-success">PHP {{ salary|floatformat:2 }}</h2>
-                    <p class="text-muted">per payday (semi-monthly)</p>
-                {% else %}
-                    <p class="text-muted">No salary configured yet.</p>
-                    <p>Go to <strong>Admin Panel</strong> and add your PaydayConfig to set your salary.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
- 
-<!-- Philippine Holidays This Year -->
-<div class="card">
-    <div class="card-header">
-        <i class="fas fa-calendar-alt"></i> Philippine Holidays {{ next_payday|date:"Y" }}
-    </div>
-    <div class="card-body">
-        {% if ph_holidays %}
-        <table class="table table-sm table-hover">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Holiday (Local)</th>
-                    <th>Holiday (English)</th>
-                    <th>Payday?</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for h in ph_holidays %}
-                <tr>
-                    <td>{{ h.date }}</td>
-                    <td>{{ h.localName }}</td>
-                    <td>{{ h.name }}</td>
-                    <td>
-                        {% if h.date|slice:"-2:" == "01" or h.date|slice:"-2:" == "15" %}
-                            <span class="badge bg-danger">Payday Conflict!</span>
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Sweldo Tracker{% endblock %}
+
+{% block content %}
+
+<div class="card mb-4"
+     style="background: var(--sw-green-100);
+            border: none;
+            border-radius: var(--sw-radius-lg);">
+    <div class="card-body text-center py-5">
+
+        {% if is_payday %}
+            <div style="font-size:3.5rem; line-height:1;">🎉</div>
+            <h2 class="fw-bold mt-3 mb-1" style="color:var(--sw-green-900);">
+                It's Payday!
+            </h2>
+            <p class="text-muted mb-0">Sweldo day ngayon! Enjoy responsibly.</p>
+
         {% else %}
-        <p class="text-muted">Could not load holidays. Check your internet connection.</p>
+            <div style="font-size:0.8rem; letter-spacing:0.08em; text-transform:uppercase;
+                        color:var(--sw-muted); font-weight:600;">
+                Days until next sweldo
+            </div>
+            <div class="fw-black my-2"
+                 style="font-size:5.5rem; line-height:1; color:var(--sw-green-900);
+                        font-family:'Plus Jakarta Sans', sans-serif;">
+                {{ days_until_payday }}
+            </div>
+            <div class="fw-semibold mb-1" style="font-size:1.15rem; color:var(--sw-text);">
+                {{ next_payday|date:"F d, Y" }} &#127477;&#127469;
+            </div>
+            <div class="text-muted small">Semi-monthly payday (1st &amp; 15th)</div>
         {% endif %}
+
+        {% if holiday_info.is_holiday %}
+        <div class="d-inline-block mt-3 px-4 py-2"
+             style="background:rgba(230,81,0,0.1);
+                    border:1px solid rgba(230,81,0,0.35);
+                    border-radius:var(--sw-radius-md);
+                    color:var(--sw-warning); font-size:0.88rem;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Holiday Alert!</strong> {{ next_payday|date:"F d" }} is
+            <strong>{{ holiday_info.name }}</strong> — your sweldo might come earlier!
+        </div>
+        {% endif %}
+
+        {% if holiday_info.error %}
+        <div class="text-muted small mt-3">
+            <i class="fas fa-wifi me-1"></i> Could not check holidays.
+        </div>
+        {% endif %}
+
     </div>
 </div>
+
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fas fa-calendar-week" style="color:var(--sw-green-800);"></i>
+                <span>This Pay Period</span>
+                <span class="text-muted small ms-1">({{ pay_period_label }})</span>
+            </div>
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted small">Expected Income</span>
+                    {% if salary %}
+                        <span class="fw-bold sw-income">₱{{ salary|floatformat:2|intcomma }}</span>
+                    {% else %}
+                        <span class="text-muted small fst-italic">Not configured</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span class="text-muted small">Expenses So Far</span>
+                    <span class="fw-bold sw-expense">₱{{ monthly_expenses|floatformat:2|intcomma }}</span>
+                </div>
+
+                {% if salary %}
+                <div class="pt-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="small text-muted">Burn Rate</span>
+                        <span class="small fw-semibold
+                            {% if burn_rate > 80 %}sw-expense
+                            {% elif burn_rate > 60 %}text-warning
+                            {% else %}sw-income{% endif %}">
+                            {{ burn_rate }}%
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar
+                            {% if burn_rate > 80 %}bg-danger
+                            {% elif burn_rate > 60 %}bg-warning
+                            {% else %}bg-success{% endif %}"
+                             style="width:{{ burn_rate }}%; max-width:100%;">
+                        </div>
+                    </div>
+                    <div class="text-muted mt-2" style="font-size:0.75rem;">
+                        {% if burn_rate >= 100 %}
+                            You've exceeded your salary budget this period.
+                        {% elif burn_rate > 80 %}
+                            Almost at budget — spend carefully!
+                        {% else %}
+                            You're within budget for this pay period.
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3 mt-2"
+                     style="border:2px dashed var(--sw-tan); border-radius:var(--sw-radius-md); font-size:0.85rem;">
+                    <i class="fas fa-peso-sign mb-2 d-block opacity-25 fa-lg"></i>
+                    Set your salary in <strong>Admin Panel → PaydayConfig</strong>
+                    to see burn rate.
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fas fa-flag" style="color:var(--sw-green-800);"></i>
+                Upcoming PH Holidays
+                {% if upcoming_holidays %}
+                <span class="badge ms-1"
+                      style="background:var(--sw-green-800); font-size:0.72rem;">
+                    {{ upcoming_holidays|length }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="card-body p-0" style="max-height:360px; overflow-y:auto;">
+                {% if upcoming_holidays %}
+                <ul class="list-group list-group-flush">
+                    {% for h in upcoming_holidays %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-medium" style="font-size:0.9rem;">{{ h.localName }}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">{{ h.date }}</div>
+                        </div>
+                        {% if h.is_payday_conflict %}
+                            <span class="badge" style="background:var(--sw-warning); font-size:0.7rem;">
+                                <i class="fas fa-exclamation me-1"></i>Payday!
+                            </span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border" style="font-size:0.7rem;">
+                                Regular
+                            </span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-wifi-slash fa-2x mb-2 d-block opacity-25"></i>
+                    <p class="mb-0 small">Could not load holidays.<br>Check your connection.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
 {% endblock %}

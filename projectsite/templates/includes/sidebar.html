@@ -1,0 +1,43 @@
+<a href="{% url 'dashboard' %}" class="sw-brand">
+    <i class="fas fa-peso-sign"></i> SpendWise PH
+</a>
+
+<nav class="nav flex-column mt-1" aria-label="Main navigation">
+    <a href="{% url 'dashboard' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i> Dashboard
+    </a>
+    <a href="{% url 'transaction-list' %}"
+       class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-exchange-alt"></i> Transactions
+    </a>
+    <a href="{% url 'debt-list' %}"
+       class="nav-link {% if 'debt' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-hand-holding-usd"></i> Utang Tracker
+    </a>
+    <a href="{% url 'savings-list' %}"
+       class="nav-link {% if 'savings' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-piggy-bank"></i> Savings Goals
+    </a>
+    <a href="{% url 'sweldo' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'sweldo' %}active{% endif %}">
+        <i class="fas fa-wallet"></i> Sweldo Tracker
+    </a>
+    <a href="{% url 'analytics' %}"
+       class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+        <i class="fas fa-chart-bar"></i> Analytics
+    </a>
+</nav>
+
+<div class="sw-sidebar-divider mt-2"></div>
+
+<div class="sw-sidebar-bottom">
+    <nav class="nav flex-column" aria-label="Account navigation">
+        <a href="#" class="nav-link">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a href="{% url 'account_logout' %}" class="nav-link">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>

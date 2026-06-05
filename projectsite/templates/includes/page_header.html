@@ -1,0 +1,54 @@
+{# ---------------------------------------------------------------
+   Sticky top bar — included once in base.html.
+
+   Contains:
+   - Hamburger button (mobile only, triggers offcanvas sidebar)
+   - {% block page_title %} slot — each child template fills this in
+   - Notification bell icon (right side)
+   - User avatar circle showing first letter of username (right side)
+
+   REMOVED from the old navbar-top:
+   - The global search bar (it had no `action` and did nothing on
+     most pages — see FRONTEND_AUDIT.md issue #1)
+   - The plain text username span
+   - The separate Logout button (logout is now in the sidebar)
+   --------------------------------------------------------------- #}
+
+<header class="sw-topbar">
+
+    <div class="d-flex align-items-center gap-3">
+
+        {# Hamburger — only visible on screens narrower than md (768px) #}
+        <button class="btn d-md-none p-0 border-0"
+                type="button"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#mobileSidebar"
+                aria-controls="mobileSidebar"
+                aria-label="Open navigation menu">
+            <i class="fas fa-bars fs-5" style="color: var(--sw-text);"></i>
+        </button>
+
+        {# Page title — each child template overrides this block #}
+        <h1 class="sw-page-title">{% block page_title %}SpendWise PH{% endblock %}</h1>
+
+    </div>
+
+    <div class="sw-topbar-right">
+        {% if user.is_authenticated %}
+
+            {# Bell icon — placeholder for future notifications #}
+            <a href="#" class="sw-bell" aria-label="Notifications">
+                <i class="fas fa-bell"></i>
+            </a>
+
+            {# Avatar circle: shows first letter of username #}
+            <a href="#" class="sw-avatar" title="{{ request.user.username }}">
+                {{ request.user.username|first|upper }}
+            </a>
+
+        {% else %}
+            <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Login</a>
+        {% endif %}
+    </div>
+
+</header>

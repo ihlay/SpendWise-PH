@@ -1,21 +1,256 @@
-{% extends 'base.html' %} {% load static %} {% block content %}
-<h4 class="mb-3">{% if object %}Update{% else %}Add New{% endif %} {{ model_name }}</h4>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-8">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{% if object %}Edit{% else %}Add{% endif %} {{ model_name }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+        <div class="card">
+            <div class="card-body p-4">
+
                 <form method="post" novalidate>
                     {% csrf_token %}
-                    {% include 'includes/form.html' %}
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Save
-                        </button>
-                        <a href="{{ cancel_url }}" class="btn btn-secondary ms-2">Cancel</a>
+
+                    {% if model_name == 'Transaction' %}
+
+                    {% for field in form.non_field_errors %}
+                        <div class="alert alert-danger py-2 small">{{ field }}</div>
+                    {% endfor %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="{{ form.description.id_for_label }}">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% for error in form.description.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
                     </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-7">
+                            <label class="form-label fw-semibold" for="{{ form.amount.id_for_label }}">
+                                Amount
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text fw-bold"
+                                      style="background:var(--sw-tan); border-color:#dee2e6;">₱</span>
+                                {{ form.amount }}
+                            </div>
+                            {% for error in form.amount.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label fw-semibold">Type</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btn-income"
+                                        class="type-btn flex-grow-1 btn btn-sm py-2"
+                                        onclick="selectType('income')">
+                                    <i class="fas fa-arrow-up me-1"></i>Income
+                                </button>
+                                <button type="button" id="btn-expense"
+                                        class="type-btn flex-grow-1 btn btn-sm py-2"
+                                        onclick="selectType('expense')">
+                                    <i class="fas fa-arrow-down me-1"></i>Expense
+                                </button>
+                            </div>
+                            <div style="display:none;">{{ form.transaction_type }}</div>
+                            {% for error in form.transaction_type.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Category</label>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Food')">Food</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Transport')">Transport</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Bills')">Bills</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Savings')">Savings</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Entertainment')">Entertainment</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Health')">Health</button>
+                            <button type="button" class="cat-chip btn btn-sm btn-outline-secondary" onclick="setCategory(this, 'Other')">Other</button>
+                        </div>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tag</label>
+                        <div class="d-flex gap-3">
+                            <button type="button" id="btn-need"
+                                    class="tag-btn flex-grow-1 btn py-3"
+                                    onclick="selectTag('need')">
+                                <i class="fas fa-check-circle d-block mb-1 fs-4"></i>
+                                <span class="fw-semibold">Need</span>
+                                <div class="small opacity-75">Essential expense</div>
+                            </button>
+                            <button type="button" id="btn-want"
+                                    class="tag-btn flex-grow-1 btn py-3"
+                                    onclick="selectTag('want')">
+                                <i class="fas fa-shopping-bag d-block mb-1 fs-4"></i>
+                                <span class="fw-semibold">Want</span>
+                                <div class="small opacity-75">Discretionary spend</div>
+                            </button>
+                        </div>
+                        <div style="display:none;">{{ form.tag }}</div>
+                        {% for error in form.tag.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label fw-semibold" for="{{ form.date.id_for_label }}">
+                            Date
+                        </label>
+                        {{ form.date }}
+                        {% for error in form.date.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    {% else %}
+
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="{% if field.field.widget.input_type == 'textarea' %}col-12{% else %}col-md-6{% endif %} mb-2">
+                            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% endif %}
+
+                    <div class="d-flex gap-2 pt-3 mt-2 border-top">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-save me-1"></i>
+                            {% if object %}Save Changes{% else %}Add {{ model_name }}{% endif %}
+                        </button>
+                        <a href="{{ cancel_url }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+{% if model_name == 'Transaction' %}
+<style>
+.type-btn {
+    border: 2px solid var(--sw-tan);
+    color: var(--sw-muted);
+    background: white;
+    border-radius: var(--sw-radius-sm);
+    font-size: 0.82rem;
+    transition: all 0.15s;
+}
+.type-btn.active-income {
+    border-color: var(--sw-income);
+    background: #E8F5E9;
+    color: var(--sw-income);
+    font-weight: 600;
+}
+.type-btn.active-expense {
+    border-color: var(--sw-expense);
+    background: #FFEBEE;
+    color: var(--sw-expense);
+    font-weight: 600;
+}
+.cat-chip {
+    border-radius: 99px;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    transition: all 0.15s;
+}
+.cat-chip.active {
+    background: var(--sw-green-900);
+    border-color: var(--sw-green-900);
+    color: white;
+}
+.tag-btn {
+    border: 2px solid var(--sw-tan);
+    background: white;
+    color: var(--sw-muted);
+    border-radius: var(--sw-radius-md);
+    text-align: center;
+    transition: all 0.15s;
+}
+.tag-btn.active-need {
+    border-color: #1565C0;
+    background: #E3F2FD;
+    color: #1565C0;
+}
+.tag-btn.active-want {
+    border-color: var(--sw-warning);
+    background: #FFF3E0;
+    color: var(--sw-warning);
+}
+</style>
+<script>
+function selectType(val) {
+    var sel = document.getElementById('id_transaction_type');
+    if (sel) sel.value = val;
+    document.getElementById('btn-income').className =
+        document.getElementById('btn-income').className.replace(/ active-\w+/g, '');
+    document.getElementById('btn-expense').className =
+        document.getElementById('btn-expense').className.replace(/ active-\w+/g, '');
+    if (val === 'income')  document.getElementById('btn-income').classList.add('active-income');
+    if (val === 'expense') document.getElementById('btn-expense').classList.add('active-expense');
+}
+
+function selectTag(val) {
+    var sel = document.getElementById('id_tag');
+    if (sel) sel.value = val;
+    document.getElementById('btn-need').className =
+        document.getElementById('btn-need').className.replace(/ active-\w+/g, '');
+    document.getElementById('btn-want').className =
+        document.getElementById('btn-want').className.replace(/ active-\w+/g, '');
+    if (val === 'need') document.getElementById('btn-need').classList.add('active-need');
+    if (val === 'want') document.getElementById('btn-want').classList.add('active-want');
+}
+
+function setCategory(btn, name) {
+    var inp = document.getElementById('id_category');
+    if (inp) inp.value = name;
+    document.querySelectorAll('.cat-chip').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var typeEl = document.getElementById('id_transaction_type');
+    if (typeEl && typeEl.value) selectType(typeEl.value);
+    else selectType('expense');
+
+    var tagEl = document.getElementById('id_tag');
+    if (tagEl && tagEl.value) selectTag(tagEl.value);
+    else selectTag('need');
+
+    var catInp = document.getElementById('id_category');
+    if (catInp && catInp.value) {
+        document.querySelectorAll('.cat-chip').forEach(function(btn) {
+            if (btn.textContent.trim() === catInp.value) btn.classList.add('active');
+        });
+    }
+});
+</script>
+{% endif %}
+
 {% endblock %}

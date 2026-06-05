@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'budget',
     'pwa',
+    'django.contrib.humanize',
 ]
 
 SITE_ID = 1
@@ -40,6 +41,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'budget.middleware.NoCacheAuthenticatedMiddleware',
 ]
 
 ROOT_URLCONF = 'projectsite.urls'
@@ -131,3 +133,4 @@ PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_ADAPTER = 'budget.adapters.SilentAuthAdapter'
