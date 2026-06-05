@@ -1,100 +1,208 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
+
+{% block page_title %}Dashboard{% endblock %}
+
 {% block content %}
-<h4 class="mb-4">Dashboard</h4>
 
-<!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-arrow-up"></i> Income (This Month)</h6>
-                <h4>PHP {{ total_income|floatformat:2 }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger">
-            <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-arrow-down"></i> Expenses (This Month)</h6>
-                <h4>PHP {{ total_expenses|floatformat:2 }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-wallet"></i> Balance</h6>
-                <h4>PHP {{ balance|floatformat:2 }}</h4>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
-            <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-calculator"></i> Daily Limit</h6>
-                <h4>PHP {{ daily_limit|floatformat:2 }}</h4>
-                <small>until next sweldo</small>
-            </div>
-        </div>
-    </div>
+{# ── Greeting ── #}
+<div class="mb-4">
+    <h4 class="fw-bold mb-0" style="color: var(--sw-text);">
+        Kamusta, {{ request.user.first_name|default:request.user.username }}!
+    </h4>
+    <p class="text-muted small mb-0">Here's your financial snapshot for this month.</p>
 </div>
 
-<!-- Second Row -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6>Wants Spending</h6>
-                <h3 class="text-warning">{{ wants_percentage }}%</h3>
-                <small class="text-muted">of expenses are Wants</small>
+{# ── KPI Cards ── #}
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="sw-kpi-card sw-kpi-balance">
+            <div>
+                <div class="sw-kpi-value">₱{{ balance|floatformat:2|intcomma }}</div>
+                <div class="sw-kpi-label">Net Balance</div>
             </div>
+            <div class="sw-kpi-icon"><i class="fas fa-wallet"></i></div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6>Utang Ko (I Owe)</h6>
-                <h3 class="text-danger">PHP {{ total_debts_i_owe|floatformat:2 }}</h3>
+
+    <div class="col-6 col-md-3">
+        <div class="sw-kpi-card sw-kpi-income">
+            <div>
+                <div class="sw-kpi-value">₱{{ total_income|floatformat:2|intcomma }}</div>
+                <div class="sw-kpi-label">Income This Month</div>
             </div>
+            <div class="sw-kpi-icon"><i class="fas fa-arrow-up"></i></div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body text-center">
-                <h6>Utang Sa Akin</h6>
-                <h3 class="text-success">PHP {{ total_debts_owed_to_me|floatformat:2 }}</h3>
+
+    <div class="col-6 col-md-3">
+        <div class="sw-kpi-card sw-kpi-expense">
+            <div>
+                <div class="sw-kpi-value">₱{{ total_expenses|floatformat:2|intcomma }}</div>
+                <div class="sw-kpi-label">Expenses This Month</div>
             </div>
+            <div class="sw-kpi-icon"><i class="fas fa-arrow-down"></i></div>
         </div>
     </div>
+
+    <div class="col-6 col-md-3">
+        <div class="sw-kpi-card sw-kpi-debt">
+            <div>
+                <div class="sw-kpi-value">₱{{ total_debts_i_owe|floatformat:2|intcomma }}</div>
+                <div class="sw-kpi-label">Total Utang Ko</div>
+            </div>
+            <div class="sw-kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Recent Transactions -->
+{# ── Info chips row ── #}
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-1">Wants Spending</div>
+                <div class="fw-bold fs-5" style="color: var(--sw-warning);">{{ wants_percentage }}%</div>
+                <div class="text-muted" style="font-size:0.75rem;">of expenses are wants</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-1">Owed to Me</div>
+                <div class="fw-bold fs-5 sw-income">₱{{ total_debts_owed_to_me|floatformat:2|intcomma }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">outstanding utang</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-1">Daily Budget</div>
+                <div class="fw-bold fs-5" style="color: var(--sw-green-800);">₱{{ daily_limit|floatformat:2|intcomma }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">until next sweldo</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-1">Savings Goals</div>
+                <div class="fw-bold fs-5" style="color: var(--sw-green-900);">{{ active_goals }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">active goals</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# ── Recent Transactions ── #}
 <div class="card">
-    <div class="card-header d-flex justify-content-between">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <span>Recent Transactions</span>
-        <a href="{% url 'transaction-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <a href="{% url 'transaction-list' %}" class="btn btn-sm btn-outline-success">View All</a>
     </div>
-    <div class="card-body">
-        <table class="table table-sm">
-            <thead>
-                <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr>
-            </thead>
-            <tbody>
-                {% for txn in recent_transactions %}
-                <tr>
-                    <td>{{ txn.date|date:"M d" }}</td>
-                    <td>{{ txn.description }}</td>
-                    <td>{{ txn.category }}</td>
-                    <td class="{% if txn.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
-                        {% if txn.transaction_type == 'income' %}+{% else %}-{% endif %}PHP {{ txn.amount|floatformat:2 }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4" class="text-center text-muted">No transactions yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card-body p-0">
+
+        {# DESKTOP: table view #}
+        <div class="d-none d-md-block">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Tag</th>
+                        <th class="text-end pe-3">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in recent_transactions %}
+                    <tr>
+                        <td class="ps-3 text-muted small">{{ txn.date|date:"M d, Y" }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td><span class="badge bg-light text-dark">{{ txn.category }}</span></td>
+                        <td>
+                            {% if txn.tag == 'need' %}
+                                <span class="badge bg-primary">Need</span>
+                            {% elif txn.tag == 'want' %}
+                                <span class="badge" style="background:#E65100;">Want</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3 fw-semibold
+                            {% if txn.transaction_type == 'income' %}sw-income{% else %}sw-expense{% endif %}">
+                            {% if txn.transaction_type == 'income' %}+{% else %}-{% endif %}₱{{ txn.amount|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="fas fa-receipt fa-2x mb-2 d-block opacity-25"></i>
+                            No transactions yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# MOBILE: card list view #}
+        <div class="d-md-none">
+            {% for txn in recent_transactions %}
+            <div class="d-flex align-items-center px-3 py-2
+                {% if not forloop.last %}border-bottom{% endif %}">
+
+                {# Date square #}
+                <div class="me-3 text-center flex-shrink-0"
+                     style="width:42px; background:var(--sw-tan);
+                            border-radius:var(--sw-radius-sm); padding:4px 0;">
+                    <div style="font-size:0.7rem; color:var(--sw-muted); line-height:1;">
+                        {{ txn.date|date:"M" }}
+                    </div>
+                    <div style="font-size:1rem; font-weight:700; color:var(--sw-text); line-height:1.2;">
+                        {{ txn.date|date:"d" }}
+                    </div>
+                </div>
+
+                {# Description + category #}
+                <div class="flex-grow-1" style="min-width:0;">
+                    <div class="fw-medium text-truncate" style="color:var(--sw-text);">
+                        {{ txn.description }}
+                    </div>
+                    <div class="text-muted" style="font-size:0.75rem;">
+                        {{ txn.category }}
+                        {% if txn.tag == 'need' %}
+                            &middot; <span style="color:#1565C0;">Need</span>
+                        {% elif txn.tag == 'want' %}
+                            &middot; <span style="color:var(--sw-warning);">Want</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Amount #}
+                <div class="ms-2 fw-bold flex-shrink-0
+                    {% if txn.transaction_type == 'income' %}sw-income{% else %}sw-expense{% endif %}">
+                    {% if txn.transaction_type == 'income' %}+{% else %}-{% endif %}₱{{ txn.amount|floatformat:2|intcomma }}
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-receipt fa-2x mb-2 d-block opacity-25"></i>
+                No transactions yet.
+            </div>
+            {% endfor %}
+        </div>
+
     </div>
 </div>
+
 {% endblock %}

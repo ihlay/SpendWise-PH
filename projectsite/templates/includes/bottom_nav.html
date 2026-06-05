@@ -1,0 +1,32 @@
+<nav class="sw-bottom-nav" aria-label="Mobile bottom navigation">
+    <a href="{% url 'dashboard' %}"
+       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="{% url 'transaction-list' %}"
+       class="{% if 'transaction' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-exchange-alt"></i>
+        <span>Transactions</span>
+    </a>
+    <a href="{% url 'savings-list' %}"
+       class="{% if 'savings' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-piggy-bank"></i>
+        <span>Savings</span>
+    </a>
+    <a href="{% url 'debt-list' %}"
+       class="{% if 'debt' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="fas fa-hand-holding-usd"></i>
+        <span>Utang</span>
+    </a>
+    <a href="{% url 'sweldo' %}"
+       class="{% if request.resolver_match.url_name == 'sweldo' %}active{% endif %}">
+        <i class="fas fa-wallet"></i>
+        <span>Sweldo</span>
+    </a>
+    <a href="{% url 'analytics' %}"
+       class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+        <i class="fas fa-chart-bar"></i>
+        <span>Analytics</span>
+    </a>
+</nav>

@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <p class="text-muted mb-0 small">Showing data for <strong>{{ period_label }}</strong></p>
+    <div class="d-flex gap-2">
+        <a href="?period=month"
+           class="btn btn-sm {% if period == 'month' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+            This Month
+        </a>
+        <a href="?period=year"
+           class="btn btn-sm {% if period == 'year' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+            This Year
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-chart-line" style="color:var(--sw-green-800);"></i>
+        Income vs Expenses — Last 6 Months
+    </div>
+    <div class="card-body">
+        <canvas id="trendChart" height="90"></canvas>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fas fa-calendar-day" style="color:var(--sw-green-800);"></i>
+                Spending by Day of Week
+            </div>
+            <div class="card-body">
+                {% if top_day_name %}
+                    <canvas id="dowChart" height="170"></canvas>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-chart-bar fa-2x mb-2 d-block opacity-25"></i>
+                        No expense data for this period.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fas fa-tags" style="color:var(--sw-green-800);"></i>
+                Top Spending Categories
+            </div>
+            <div class="card-body">
+                {% if top_category %}
+                    <canvas id="catChart" height="170"></canvas>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-tags fa-2x mb-2 d-block opacity-25"></i>
+                        No expense data for this period.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center gap-2">
+        <i class="fas fa-balance-scale" style="color:var(--sw-green-800);"></i>
+        Needs vs Wants
+    </div>
+    <div class="card-body">
+        {% if expense_total > 0 %}
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">Needs</span>
+                    <span class="fw-bold" style="color:#1565C0;">
+                        ₱{{ needs_total|floatformat:2|intcomma }}
+                        <span class="text-muted fw-normal small">
+                            ({% widthratio needs_total expense_total 100 %}%)
+                        </span>
+                    </span>
+                </div>
+                <div class="progress mb-1">
+                    <div class="progress-bar"
+                         style="width:{% widthratio needs_total expense_total 100 %}%;
+                                background:#1565C0;">
+                    </div>
+                </div>
+                <div class="text-muted small">Essential expenses</div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">Wants</span>
+                    <span class="fw-bold" style="color:var(--sw-warning);">
+                        ₱{{ wants_total|floatformat:2|intcomma }}
+                        <span class="text-muted fw-normal small">
+                            ({% widthratio wants_total expense_total 100 %}%)
+                        </span>
+                    </span>
+                </div>
+                <div class="progress mb-1">
+                    <div class="progress-bar"
+                         style="width:{% widthratio wants_total expense_total 100 %}%;
+                                background:var(--sw-warning);">
+                    </div>
+                </div>
+                <div class="text-muted small">Discretionary spending</div>
+            </div>
+        </div>
+
+        {% if top_day_name and top_category %}
+        <div class="mt-4 p-3 rounded"
+             style="background:var(--sw-green-100); border-radius:var(--sw-radius-md);">
+            <i class="fas fa-lightbulb me-2" style="color:var(--sw-green-800);"></i>
+            <strong>Insight:</strong> Your biggest spending day was
+            <strong>{{ top_day_name }}</strong>, mostly on
+            <strong>{{ top_category }}</strong>.
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-receipt fa-2x mb-2 d-block opacity-25"></i>
+            No expense data for this period.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+
+const GREEN  = '#2E7D32';
+const RED    = '#C62828';
+const TAN    = '#EDE8DF';
+const MUTED  = '#6B7280';
+
+const phpFmt = v => '₱' + Number(v).toLocaleString('en-PH', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+// ── Trend line chart ──
+(function() {
+    const labels  = {{ trend_labels_json|safe }};
+    const income  = {{ trend_income_json|safe }};
+    const expense = {{ trend_expense_json|safe }};
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: income,
+                    borderColor: GREEN,
+                    backgroundColor: 'rgba(46,125,50,0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: GREEN,
+                    pointRadius: 4,
+                    borderWidth: 2,
+                },
+                {
+                    label: 'Expenses',
+                    data: expense,
+                    borderColor: RED,
+                    backgroundColor: 'rgba(198,40,40,0.06)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: RED,
+                    pointRadius: 4,
+                    borderWidth: 2,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { callbacks: { label: ctx => ' ' + phpFmt(ctx.parsed.y) } }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: TAN },
+                    ticks: { callback: phpFmt }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+
+// ── Day-of-week bar chart ──
+{% if top_day_name %}
+(function() {
+    const labels  = {{ day_labels_json|safe }};
+    const amounts = {{ day_amounts_json|safe }};
+    const maxVal  = Math.max(...amounts);
+    new Chart(document.getElementById('dowChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Expenses',
+                data: amounts,
+                backgroundColor: amounts.map(v => v === maxVal && maxVal > 0 ? RED : 'rgba(46,125,50,0.55)'),
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' ' + phpFmt(ctx.parsed.y) } }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: TAN },
+                    ticks: { callback: phpFmt }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+{% endif %}
+
+// ── Top categories horizontal bar chart ──
+{% if top_category %}
+(function() {
+    const labels  = {{ cat_labels_json|safe }};
+    const amounts = {{ cat_amounts_json|safe }};
+    const alphas  = [0.85, 0.65, 0.50, 0.38, 0.28];
+    new Chart(document.getElementById('catChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Expenses',
+                data: amounts,
+                backgroundColor: alphas.slice(0, amounts.length).map(a => `rgba(198,40,40,${a})`),
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' ' + phpFmt(ctx.parsed.x) } }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: TAN },
+                    ticks: { callback: phpFmt }
+                },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+})();
+{% endif %}
+</script>
+{% endblock %}

@@ -1,44 +1,118 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
+
+{% block page_title %}Savings Goals{% endblock %}
+
 {% block content %}
-<h4 class="mb-3">Savings Goals</h4>
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>My Goals</span>
-        <a href="{% url 'savings-add' %}" class="btn btn-success btn-sm">
-            <i class="fas fa-plus"></i> Add Goal
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            {% for goal in object_list %}
-            <div class="col-md-6 mb-3">
-                <div class="card border">
-                    <div class="card-body">
-                        <h5>{{ goal.goal_name }}</h5>
-                        <p class="text-muted mb-1">Target: PHP {{ goal.target_amount|floatformat:2 }}</p>
-                        <p class="mb-1">Current: PHP {{ goal.current_amount|floatformat:2 }}</p>
-                        <div class="progress mb-2" style="height: 20px;">
-                            <div class="progress-bar bg-success"
-                                 role="progressbar"
-                                 style="width: {{ goal.progress_percentage }}%; max-width: 100%;">
-                                {{ goal.progress_percentage }}%
-                            </div>
-                        </div>
-                        {% if goal.deadline %}
-                        <small class="text-muted">Deadline: {{ goal.deadline|date:"M d, Y" }}</small>
-                        {% endif %}
-                        <div class="mt-2">
-                            <a href="{% url 'savings-update' goal.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a href="{% url 'savings-delete' goal.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-12 text-center text-muted">No savings goals yet. Start one!</div>
-            {% endfor %}
+
+{% if object_list %}
+<div class="card mb-4" style="background: var(--sw-green-900); border-radius: var(--sw-radius-md);">
+    <div class="card-body py-3 text-white text-center">
+        <span class="fw-bold fs-4">₱{{ total_saved|floatformat:2|intcomma }}</span>
+        <span class="ms-2 opacity-75">saved across {{ object_list|length }} goal{{ object_list|length|pluralize }}</span>
+        {% if total_target %}
+        <div class="mt-1 opacity-60" style="font-size:0.8rem;">
+            Target: ₱{{ total_target|floatformat:2|intcomma }}
         </div>
+        {% endif %}
     </div>
 </div>
+{% endif %}
+
+<div class="row g-3">
+
+    {% for goal in object_list %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 {% if goal.progress_percentage >= 100 %}border-success{% endif %}"
+             style="{% if goal.progress_percentage >= 100 %}border-color: var(--sw-income) !important;{% endif %}">
+            <div class="card-body">
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+
+                    <div style="position:relative; flex-shrink:0; width:72px; height:72px;">
+                        <svg width="72" height="72" viewBox="0 0 72 72"
+                             style="transform:rotate(-90deg); display:block;">
+                            <circle cx="36" cy="36" r="28"
+                                    fill="none"
+                                    stroke="var(--sw-tan)"
+                                    stroke-width="7"/>
+                            <circle cx="36" cy="36" r="28"
+                                    fill="none"
+                                    stroke="{% if goal.progress_percentage >= 100 %}var(--sw-income){% else %}var(--sw-green-800){% endif %}"
+                                    stroke-width="7"
+                                    stroke-linecap="round"
+                                    stroke-dasharray="{% widthratio goal.progress_percentage 100 176 %} 176"/>
+                        </svg>
+                        <div style="position:absolute; top:50%; left:50%;
+                                    transform:translate(-50%,-50%);
+                                    font-weight:700; font-size:0.78rem;
+                                    color:var(--sw-text); line-height:1;">
+                            {{ goal.progress_percentage|floatformat:0 }}%
+                        </div>
+                    </div>
+
+                    <div class="flex-grow-1" style="min-width:0;">
+                        <div class="fw-bold text-truncate" style="color:var(--sw-text);">
+                            {{ goal.goal_name }}
+                        </div>
+                        {% if goal.progress_percentage >= 100 %}
+                            <span class="badge mt-1" style="background:var(--sw-income); font-size:0.7rem;">
+                                <i class="fas fa-check me-1"></i>Completed!
+                            </span>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.82rem;">
+                    <span class="text-muted">Saved</span>
+                    <span class="fw-semibold sw-income">₱{{ goal.current_amount|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2" style="font-size:0.82rem;">
+                    <span class="text-muted">Target</span>
+                    <span class="fw-semibold" style="color:var(--sw-text);">₱{{ goal.target_amount|floatformat:2|intcomma }}</span>
+                </div>
+
+                {% if goal.deadline %}
+                <div class="text-muted mb-3" style="font-size:0.78rem;">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    Deadline: {{ goal.deadline|date:"M d, Y" }}
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <a href="{% url 'savings-update' goal.pk %}"
+                       class="btn btn-sm btn-outline-secondary flex-grow-1">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'savings-delete' goal.pk %}"
+                       class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'savings-add' %}" class="text-decoration-none d-block h-100">
+            <div class="h-100 d-flex align-items-center justify-content-center"
+                 style="border: 2px dashed var(--sw-tan);
+                        border-radius: var(--sw-radius-md);
+                        min-height: 160px;
+                        color: var(--sw-muted);
+                        transition: border-color 0.2s, color 0.2s;">
+                <div class="text-center py-3">
+                    <i class="fas fa-plus-circle fa-2x mb-2 d-block"></i>
+                    <span class="fw-medium" style="font-size:0.9rem;">Add New Goal</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+</div>
+
 {% endblock %}

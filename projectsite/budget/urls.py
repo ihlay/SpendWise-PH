@@ -16,10 +16,16 @@ urlpatterns = [
     path('debts/add/', views.DebtCreateView.as_view(), name='debt-add'),
     path('debts/<int:pk>/', views.DebtUpdateView.as_view(), name='debt-update'),
     path('debts/<int:pk>/delete/', views.DebtDeleteView.as_view(), name='debt-delete'),
+    path('debts/<int:pk>/mark-paid/', views.DebtMarkPaidView.as_view(), name='debt-mark-paid'),
 
     # Savings Goals
     path('savings/', views.SavingsGoalListView.as_view(), name='savings-list'),
     path('savings/add/', views.SavingsGoalCreateView.as_view(), name='savings-add'),
     path('savings/<int:pk>/', views.SavingsGoalUpdateView.as_view(), name='savings-update'),
     path('savings/<int:pk>/delete/', views.SavingsGoalDeleteView.as_view(), name='savings-delete'),
+
+    # sweldo tracker and analytics — miko
+    path('sweldo/', views.SweldoTrackerView.as_view(), name='sweldo'),
+    path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
+
 ]
