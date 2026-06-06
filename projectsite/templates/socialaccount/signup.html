@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile – SpendWise PH</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="{% static 'css/spendwise.css' %}" rel="stylesheet">
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        }
+
+        .auth-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .auth-brand-panel {
+            flex: 0 0 42%;
+            background: var(--sw-green-900);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem 2.5rem;
+        }
+
+        .auth-brand-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-brand-logo i {
+            font-size: 1.75rem;
+            opacity: 0.9;
+        }
+
+        .auth-tagline {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+        }
+
+        .auth-features li {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            padding: 0.35rem 0;
+        }
+
+        .auth-features li i {
+            width: 20px;
+            opacity: 0.9;
+        }
+
+        .auth-illustration {
+            margin-top: 2.5rem;
+            font-size: 5rem;
+            text-align: center;
+            opacity: 0.25;
+            line-height: 1;
+        }
+
+        .auth-form-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            padding: 2.5rem 2rem;
+        }
+
+        .auth-form-inner {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-footer {
+            font-size: 0.8rem;
+            color: var(--sw-muted);
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-wrapper">
+
+    <div class="auth-brand-panel d-none d-md-flex flex-column">
+
+        <div class="auth-brand-logo">
+            <img src="{% static 'img/logo.png' %}" alt="SpendWise PH" style="width:34px;height:34px;border-radius:6px;vertical-align:middle;"> SpendWise PH
+        </div>
+
+        <p class="auth-tagline">
+            I-manage ang pera mo,<br>Filipino style.
+        </p>
+
+        <ul class="list-unstyled auth-features">
+            <li><i class="fas fa-chart-line me-2"></i> Track income &amp; expenses</li>
+            <li><i class="fas fa-hand-holding-usd me-2"></i> Manage your utang</li>
+            <li><i class="fas fa-piggy-bank me-2"></i> Build savings goals</li>
+            <li><i class="fas fa-wallet me-2"></i> Plan around sweldo day</li>
+        </ul>
+
+        <div class="auth-illustration" aria-hidden="true">
+            <img src="{% static 'img/logo.png' %}" alt="" style="width:110px;height:110px;border-radius:14px;opacity:0.35;">
+        </div>
+
+    </div>
+
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+
+            <div class="d-md-none text-center mb-4">
+                <span style="font-size:1.5rem; font-weight:700; color: var(--sw-green-900);">
+                    <img src="{% static 'img/logo.png' %}" alt="SpendWise PH" style="width:28px;height:28px;border-radius:5px;vertical-align:middle;"> SpendWise PH
+                </span>
+                <p class="text-muted small mt-1 mb-0">I-manage ang pera mo, Filipino style.</p>
+            </div>
+
+            <div class="text-center mb-4">
+                <div style="width:64px; height:64px; border-radius:50%; background:var(--sw-green-100); display:flex; align-items:center; justify-content:center; margin:0 auto 1rem;">
+                    <i class="fas fa-user-check" style="font-size:1.6rem; color:var(--sw-green-900);"></i>
+                </div>
+                <h5 class="fw-semibold mb-1" style="color: var(--sw-text);">Almost there!</h5>
+                <p class="text-muted small mb-0">Just set a username for your SpendWise PH account.</p>
+            </div>
+
+            <form method="post" action="{% url 'socialaccount_signup' %}">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small mb-3">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if form.username %}
+                <div class="mb-3">
+                    <label class="form-label fw-medium" for="{{ form.username.id_for_label }}">Username</label>
+                    <input type="text"
+                           name="{{ form.username.html_name }}"
+                           id="{{ form.username.id_for_label }}"
+                           class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                           placeholder="Choose a username"
+                           value="{{ form.username.value|default:'' }}"
+                           required
+                           autocomplete="username">
+                    {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.email %}
+                <div class="mb-3">
+                    <label class="form-label fw-medium" for="{{ form.email.id_for_label }}">Email</label>
+                    <input type="email"
+                           name="{{ form.email.html_name }}"
+                           id="{{ form.email.id_for_label }}"
+                           class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                           placeholder="your@email.com"
+                           value="{{ form.email.value|default:'' }}"
+                           autocomplete="email">
+                    {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-success w-100 mt-1">
+                    <i class="fas fa-check me-2"></i> Finish Setup
+                </button>
+            </form>
+
+            <p class="auth-footer">
+                SpendWise PH &copy; 2025 &nbsp;|&nbsp; Built for Filipinos &#127477;&#127469;
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
